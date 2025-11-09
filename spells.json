@@ -1,0 +1,14 @@
+{
+  "fireball": {
+    "name": "Fireball",
+    "desc": "强力火球术",
+    "audio": "audio/fireball.mp3",
+    "dice": "8d6"
+  },
+  "heal": {
+    "name": "Heal",
+    "desc": "治疗法术",
+    "audio": "audio/heal.mp3",
+    "dice": "4d6"
+  }
+}

@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>Spell NFC Dice — 播放音效并投骰子</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body{font-family: system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial; padding:20px; max-width:980px; margin:auto;}
+    header{display:flex;align-items:center;gap:12px}
+    h1{margin:0}
+    .spell-list{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+    .card{border:1px solid #ddd;padding:12px;border-radius:8px;min-width:220px}
+    button{padding:8px 12px;border-radius:6px;border:0;background:#1e88e5;color:#fff;cursor:pointer}
+    input[type="file"]{display:block;margin-top:8px}
+    .result{font-size:16px;margin-top:8px}
+    .admin{margin-top:20px;border-top:1px dashed #ccc;padding-top:12px}
+    .notice{font-size:13px;color:#666}
+    #nfcStatus{margin-top:8px;font-size:13px;color:#333}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Spell NFC Dice</h1>
+    <small class="notice">贴 TAG → 打开对应 URL → 播放音效并投骰子</small>
+  </header>
+
+  <section id="main">
+    <div id="nfcArea">
+      <strong>Web NFC:</strong>
+      <div id="nfcStatus">检测中…</div>
+      <button id="scanNfcBtn" style="display:none">Scan NFC (Chrome/Android)</button>
+    </div>
+
+    <div id="spellArea"></div>
+
+    <h3>手动投骰（输入 dice 格式，例如 8d6）</h3>
+    <input id="manualDice" placeholder="例如 8d6" />
+    <button id="rollBtn">Roll</button>
+    <div id="manualResult" class="result"></div>
+
+    <div class="admin">
+      <h3>管理（静态仓库方式）</h3>
+      <p>把音频放在仓库的 <code>audio/</code> 目录，并编辑 <code>spells.json</code> 添加/修改法术。</p>
+      <p>每个法术的 NFC URL 示例（写入标签时使用）：</p>
+      <pre id="nfcUrls"></pre>
+      <p class="notice">若要网页内直接读取 NFC（不离开页面），仅在支持 Web NFC 的 Chrome for Android 可用。iPhone 系统通常会弹出通知提示打开链接。</p>
+    </div>
+  </section>
+
+  <script>
+  const spellsUrl = './spells.json';
+
+  async function loadSpells(){
+    try{
+      const r = await fetch(spellsUrl, {cache: "no-store"});
+      if(!r.ok) throw new Error('无法加载 spells.json');
+      const spells = await r.json();
+      return spells;
+    }catch(e){
+      console.warn('加载 spells.json 失败:', e);
+      return {};
+    }
+  }
+
+  function createSpellCard(key, info){
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.innerHTML = `
+      <strong>${info.name || key}</strong>
+      <p>${info.desc || ''}</p>
+      <p>骰子: <code>${info.dice || '8d6'}</code></p>
+      <button data-key="${key}" class="playBtn">播放 & 投骰</button>
+      <div class="result" id="res-${key}"></div>
+      <p style="font-size:12px;margin-top:6px">NFC URL: <code>${location.origin + location.pathname}?spell=${encodeURIComponent(key)}</code></p>
+    `;
+    return div;
+  }
+
+  function rollDiceExpr(expr){
+    expr = expr.replace(/\s+/g,'');
+    const m = expr.match(/^(\d+)[dD](\d+)([+-]\d+)?$/);
+    if(!m) return {error:'无法解析 dice 表达式'};
+    const n = parseInt(m[1]), sides = parseInt(m[2]), mod = m[3] ? parseInt(m[3]) : 0;
+    const rolls = [];
+    for(let i=0;i<n;i++){
+      const r = Math.floor(Math.random()*sides) + 1;
+      rolls.push(r);
+    }
+    const sum = rolls.reduce((a,b)=>a+b,0) + mod;
+    return {rolls, sum, sides, n, mod};
+  }
+
+  function showResult(container, obj){
+    if(obj.error) container.textContent = obj.error;
+    else{
+      container.innerHTML = `结果: <strong>${obj.sum}</strong><br>明细: [${obj.rolls.join(', ')}] ${obj.mod?(' 改变 '+obj.mod):''}`;
+    }
+  }
+
+  function getQueryParam(name){
+    const params = new URLSearchParams(location.search);
+    return params.get(name);
+  }
+
+  async function playSpell(key, info){
+    const resDiv = document.getElementById('res-'+key);
+    if(resDiv) resDiv.textContent = '加载中...';
+    try{
+      if(info.audio){
+        const audio = new Audio(info.audio);
+        // 尝试自动播放；若被浏览器阻止则用户需交互
+        audio.play().catch(err => {
+          console.warn('自动播放被阻止', err);
+        });
+      }
+    }catch(e){ console.warn(e) }
+
+    const diceExpr = info.dice || '8d6';
+    const result = rollDiceExpr(diceExpr);
+    if(resDiv) showResult(resDiv, result);
+    else console.log('roll', result);
+  }
+
+  async function init(){
+    const spells = await loadSpells();
+    const area = document.getElementById('spellArea');
+    area.innerHTML = '';
+    const container = document.createElement('div');
+    container.className = 'spell-list';
+    for(const key of Object.keys(spells)){
+      const card = createSpellCard(key, spells[key]);
+      container.appendChild(card);
+    }
+    area.appendChild(container);
+
+    document.getElementById('nfcUrls').textContent = Object.keys(spells).map(k => `${k}: ${location.origin + location.pathname}?spell=${encodeURIComponent(k)}`).join('\\n');
+
+    area.addEventListener('click', async (e)=>{
+      if(e.target.classList.contains('playBtn')){
+        const key = e.target.dataset.key;
+        await playSpell(key, spells[key]);
+      }
+    });
+
+    const qspell = getQueryParam('spell');
+    if(qspell && spells[qspell]){
+      setTimeout(()=>playSpell(qspell, spells[qspell]), 300);
+    }
+
+    // Web NFC support check
+    const nfcStatus = document.getElementById('nfcStatus');
+    const scanBtn = document.getElementById('scanNfcBtn');
+    if('NDEFReader' in window){
+      nfcStatus.textContent = '本浏览器支持 Web NFC（Chrome Android）。你可以在页面内扫描 NFC 标签（仅限支持的设备/浏览器）。';
+      scanBtn.style.display = 'inline-block';
+      scanBtn.addEventListener('click', async ()=>{
+        try{
+          const ndef = new NDEFReader();
+          await ndef.scan();
+          nfcStatus.textContent = '已开始监听 NFC，请把标签靠近设备…';
+          ndef.onreading = event => {
+            const decoder = new TextDecoder();
+            let url = null;
+            for(const rec of event.message.records){
+              try{
+                if(rec.recordType === 'url'){
+                  url = decoder.decode(rec.data);
+                } else if(rec.recordType === 'text'){
+                  url = decoder.decode(rec.data);
+                } else {
+                  // try decode as text
+                  url = decoder.decode(rec.data);
+                }
+              }catch(e){ console.warn(e) }
+            }
+            if(url){
+              nfcStatus.textContent = '读取到 URL： ' + url;
+              // navigate to url so site open (may be same page)
+              window.location.href = url;
+            }else{
+              nfcStatus.textContent = '读取到 NFC，但未解析出 URL';
+            }
+          };
+        }catch(err){
+          nfcStatus.textContent = '启动 NFC 扫描失败：' + err;
+        }
+      });
+    } else {
+      nfcStatus.innerHTML = '当前浏览器不支持 Web NFC。<br>请使用带 NFC 的手机系统读取标签（写入 URL 到标签），或使用 Chrome Android 支持 Web NFC。';
+    }
+  }
+
+  document.getElementById('rollBtn').addEventListener('click', ()=>{
+    const expr = document.getElementById('manualDice').value.trim();
+    const out = rollDiceExpr(expr || '8d6');
+    document.getElementById('manualResult').innerHTML = out.error ? out.error : `结果: <strong>${out.sum}</strong><br>明细: [${out.rolls.join(', ')}]`;
+  });
+
+  init();
+  </script>
+</body>
+</html>

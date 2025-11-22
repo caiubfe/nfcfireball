@@ -10,5 +10,11 @@
     "desc": "治疗法术",
     "audio": "audio/heal.mp3",
     "dice": "4d6"
+  },
+  "ignis": {
+    "name": "ignis",
+    "desc": "伊格尼斯！",
+    "audio": "audio/ignis.mp3",
+    "dice": "1d10"
   }
 }

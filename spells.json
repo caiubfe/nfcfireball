@@ -5,8 +5,8 @@
     "audio": "audio/fireball.mp3",
     "dice": "8d6"
   },
-  "Eldritch Blast": {
-    "name": "Eldritch Blast",
+  "EldritchBlast": {
+    "name": "EldritchBlast",
     "desc": "魔能爆！",
     "audio": "audio/moneng.mp3",
     "dice": "1d10"

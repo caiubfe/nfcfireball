@@ -2,199 +2,505 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
-  <title>Spell NFC Dice — 播放音效并投骰子</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Arcane Grimoire - NFC Spell Caster</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <style>
-    body{font-family: system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial; padding:20px; max-width:980px; margin:auto;}
-    header{display:flex;align-items:center;gap:12px}
-    h1{margin:0}
-    .spell-list{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
-    .card{border:1px solid #ddd;padding:12px;border-radius:8px;min-width:220px}
-    button{padding:8px 12px;border-radius:6px;border:0;background:#1e88e5;color:#fff;cursor:pointer}
-    input[type="file"]{display:block;margin-top:8px}
-    .result{font-size:16px;margin-top:8px}
-    .admin{margin-top:20px;border-top:1px dashed #ccc;padding-top:12px}
-    .notice{font-size:13px;color:#666}
-    #nfcStatus{margin-top:8px;font-size:13px;color:#333}
+    :root {
+      --bg-color: #1a1a2e;
+      --card-bg: #16213e;
+      --accent-gold: #ffd700;
+      --accent-purple: #b537f2;
+      --text-color: #e0e0e0;
+      --border-color: #2a2a4e;
+    }
+
+    body {
+      font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      color: var(--accent-gold);
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+      margin-bottom: 5px;
+      font-family: 'Courier New', Courier, monospace; /* 更有卷轴感 */
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: #888;
+      margin-bottom: 30px;
+    }
+
+    /* NFC Status Area */
+    .nfc-hud {
+      width: 100%;
+      max-width: 600px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px dashed var(--accent-purple);
+      border-radius: 12px;
+      padding: 15px;
+      text-align: center;
+      margin-bottom: 20px;
+      transition: all 0.3s ease;
+    }
+    .nfc-hud.active {
+      border-style: solid;
+      box-shadow: 0 0 15px var(--accent-purple);
+      background: rgba(181, 55, 242, 0.1);
+    }
+
+    /* Spell Cards Grid */
+    .spell-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 15px;
+      width: 100%;
+      max-width: 800px;
+      margin-bottom: 40px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 15px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+      border-color: var(--accent-gold);
+    }
+
+    .card h3 {
+      margin: 10px 0 5px 0;
+      font-size: 1.1rem;
+      color: #fff;
+    }
+
+    .card .dice-tag {
+      background: #333;
+      color: #aaa;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-family: monospace;
+    }
+
+    .card .card-icon {
+      font-size: 2rem;
+      margin-bottom: 5px;
+    }
+
+    /* Modal Overlay for Results */
+    .spell-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.85);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+      backdrop-filter: blur(5px);
+    }
+    .spell-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .result-box {
+      background: linear-gradient(145deg, #2a1a4a, #1a1a2e);
+      border: 2px solid var(--accent-gold);
+      padding: 30px;
+      border-radius: 20px;
+      text-align: center;
+      width: 80%;
+      max-width: 400px;
+      box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+      transform: scale(0.8);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .spell-overlay.show .result-box {
+      transform: scale(1);
+    }
+
+    .result-title {
+      color: var(--accent-gold);
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+    
+    .result-total {
+      font-size: 5rem;
+      font-weight: bold;
+      color: #fff;
+      text-shadow: 0 0 20px var(--accent-purple);
+      line-height: 1;
+      margin: 10px 0;
+    }
+
+    .result-details {
+      color: #aaa;
+      font-family: monospace;
+      font-size: 1rem;
+    }
+
+    .close-btn {
+      margin-top: 20px;
+      padding: 10px 30px;
+      background: transparent;
+      border: 1px solid #666;
+      color: #888;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .close-btn:hover {
+      border-color: #fff;
+      color: #fff;
+    }
+
+    /* Manual Roll Section */
+    .manual-roll {
+      width: 100%;
+      max-width: 600px;
+      background: #222;
+      padding: 15px;
+      border-radius: 8px;
+      display: flex;
+      gap: 10px;
+    }
+    input {
+      flex: 1;
+      background: #333;
+      border: 1px solid #444;
+      color: #fff;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    button.roll-btn {
+      background: var(--accent-purple);
+      color: white;
+      border: none;
+      padding: 0 20px;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    
+    /* Admin/Tools Toggle */
+    .tools-toggle {
+      margin-top: 40px;
+      font-size: 12px;
+      color: #444;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .admin-panel {
+      display: none;
+      margin-top: 20px;
+      padding: 20px;
+      background: #111;
+      width: 100%;
+      max-width: 800px;
+      border-top: 1px solid #333;
+    }
+    .admin-panel.visible { display: block; }
+    code { color: var(--accent-gold); }
+    
+    /* Animations */
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Spell NFC Dice</h1>
-    <small class="notice">贴 TAG → 打开对应 URL → 播放音效并投骰子</small>
+
+  <header style="text-align:center">
+    <h1>ARCANE GRIMOIRE</h1>
+    <div class="subtitle">NFC Spell Casting & Dice Roller</div>
   </header>
 
-  <section id="main">
-    <div id="nfcArea">
-      <strong>Web NFC:</strong>
-      <div id="nfcStatus">检测中…</div>
-      <button id="scanNfcBtn" style="display:none">Scan NFC (Chrome/Android)</button>
+  <!-- NFC HUD -->
+  <div id="nfcHud" class="nfc-hud">
+    <div id="nfcStatusIcon" style="font-size:24px; margin-bottom:5px;">📡</div>
+    <div id="nfcStatusText">等待魔法信号... (NFC)</div>
+    <button id="scanNfcBtn" class="roll-btn" style="display:none; margin-top:10px; background:#333;">启用 NFC 扫描 (Android)</button>
+  </div>
+
+  <!-- Spell Grid -->
+  <div id="spellArea" class="spell-list">
+    <!-- JavaScript will populate this -->
+    <div style="color:#666; text-align:center; width:100%;">正在从法术书加载咒语...</div>
+  </div>
+
+  <!-- Manual Roll -->
+  <div class="manual-roll">
+    <input id="manualDice" placeholder="手动施法 (例如: 8d6+5)" />
+    <button id="rollBtn" class="roll-btn">ROLL</button>
+  </div>
+
+  <!-- Result Overlay (The "Big" UI) -->
+  <div id="resultOverlay" class="spell-overlay">
+    <div class="result-box">
+      <div class="result-title" id="resTitle">FIREBALL</div>
+      <div class="card-icon" style="font-size:30px">🔥</div>
+      <div class="result-total" id="resTotal">0</div>
+      <div class="result-details" id="resDetails">[Rolling...]</div>
+      <button class="close-btn" onclick="closeOverlay()">关闭</button>
+      
+      <div style="margin-top:15px; font-size:12px; color:#666;">
+        <span id="resDesc"></span>
+      </div>
     </div>
+  </div>
 
-    <div id="spellArea"></div>
-
-    <h3>手动投骰（输入 dice 格式，例如 8d6）</h3>
-    <input id="manualDice" placeholder="例如 8d6" />
-    <button id="rollBtn">Roll</button>
-    <div id="manualResult" class="result"></div>
-
-    <div class="admin">
-      <h3>管理（静态仓库方式）</h3>
-      <p>把音频放在仓库的 <code>audio/</code> 目录，并编辑 <code>spells.json</code> 添加/修改法术。</p>
-      <p>每个法术的 NFC URL 示例（写入标签时使用）：</p>
-      <pre id="nfcUrls"></pre>
-      <p class="notice">若要网页内直接读取 NFC（不离开页面），仅在支持 Web NFC 的 Chrome for Android 可用。iPhone 系统通常会弹出通知提示打开链接。</p>
-    </div>
-  </section>
+  <div class="tools-toggle" onclick="toggleAdmin()">显示/隐藏 法术书管理工具</div>
+  <div id="adminPanel" class="admin-panel">
+    <h3>法术书管理 (URL 生成器)</h3>
+    <p>将以下 URL 写入 NFC 标签，扫描时即可自动施法：</p>
+    <pre id="nfcUrls" style="white-space: pre-wrap; background: #222; padding: 10px; color: #0f0;"></pre>
+  </div>
 
   <script>
   const spellsUrl = './spells.json';
+  let spellsData = {};
+
+  // 预设图标，如果没有定义
+  const defaultIcons = ['✨', '🔥', '⚡', '❄️', '💀', '🛡️', '👁️'];
 
   async function loadSpells(){
     try{
       const r = await fetch(spellsUrl, {cache: "no-store"});
       if(!r.ok) throw new Error('无法加载 spells.json');
-      const spells = await r.json();
-      return spells;
+      spellsData = await r.json();
+      renderSpells(spellsData);
+      
+      // Generate Admin URLs
+      const urlList = Object.keys(spellsData).map(k => 
+        `${k.padEnd(15)}: ${location.origin}${location.pathname}?spell=${encodeURIComponent(k)}`
+      ).join('\n');
+      document.getElementById('nfcUrls').textContent = urlList;
+
     }catch(e){
-      console.warn('加载 spells.json 失败:', e);
-      return {};
+      console.warn('加载失败:', e);
+      document.getElementById('spellArea').innerHTML = '<div style="color:red">法术书丢失 (spells.json load error)</div>';
     }
   }
 
-  function createSpellCard(key, info){
-    const div = document.createElement('div');
-    div.className = 'card';
-    div.innerHTML = `
-      <strong>${info.name || key}</strong>
-      <p>${info.desc || ''}</p>
-      <p>骰子: <code>${info.dice || '8d6'}</code></p>
-      <button data-key="${key}" class="playBtn">播放 & 投骰</button>
-      <div class="result" id="res-${key}"></div>
-      <p style="font-size:12px;margin-top:6px">NFC URL: <code>${location.origin + location.pathname}?spell=${encodeURIComponent(key)}</code></p>
-    `;
-    return div;
-  }
-
-  function rollDiceExpr(expr){
-    expr = expr.replace(/\s+/g,'');
-    const m = expr.match(/^(\d+)[dD](\d+)([+-]\d+)?$/);
-    if(!m) return {error:'无法解析 dice 表达式'};
-    const n = parseInt(m[1]), sides = parseInt(m[2]), mod = m[3] ? parseInt(m[3]) : 0;
-    const rolls = [];
-    for(let i=0;i<n;i++){
-      const r = Math.floor(Math.random()*sides) + 1;
-      rolls.push(r);
-    }
-    const sum = rolls.reduce((a,b)=>a+b,0) + mod;
-    return {rolls, sum, sides, n, mod};
-  }
-
-  function showResult(container, obj){
-    if(obj.error) container.textContent = obj.error;
-    else{
-      container.innerHTML = `结果: <strong>${obj.sum}</strong><br>明细: [${obj.rolls.join(', ')}] ${obj.mod?(' 改变 '+obj.mod):''}`;
-    }
-  }
-
-  function getQueryParam(name){
-    const params = new URLSearchParams(location.search);
-    return params.get(name);
-  }
-
-  async function playSpell(key, info){
-    const resDiv = document.getElementById('res-'+key);
-    if(resDiv) resDiv.textContent = '加载中...';
-    try{
-      if(info.audio){
-        const audio = new Audio(info.audio);
-        // 尝试自动播放；若被浏览器阻止则用户需交互
-        audio.play().catch(err => {
-          console.warn('自动播放被阻止', err);
-        });
-      }
-    }catch(e){ console.warn(e) }
-
-    const diceExpr = info.dice || '8d6';
-    const result = rollDiceExpr(diceExpr);
-    if(resDiv) showResult(resDiv, result);
-    else console.log('roll', result);
-  }
-
-  async function init(){
-    const spells = await loadSpells();
-    const area = document.getElementById('spellArea');
-    area.innerHTML = '';
-    const container = document.createElement('div');
-    container.className = 'spell-list';
-    for(const key of Object.keys(spells)){
-      const card = createSpellCard(key, spells[key]);
-      container.appendChild(card);
-    }
-    area.appendChild(container);
-
-    document.getElementById('nfcUrls').textContent = Object.keys(spells).map(k => `${k}: ${location.origin + location.pathname}?spell=${encodeURIComponent(k)}`).join('\\n');
-
-    area.addEventListener('click', async (e)=>{
-      if(e.target.classList.contains('playBtn')){
-        const key = e.target.dataset.key;
-        await playSpell(key, spells[key]);
-      }
+  function renderSpells(spells){
+    const container = document.getElementById('spellArea');
+    container.innerHTML = '';
+    
+    Object.keys(spells).forEach((key, idx) => {
+      const spell = spells[key];
+      const icon = spell.icon || defaultIcons[idx % defaultIcons.length];
+      
+      const div = document.createElement('div');
+      div.className = 'card';
+      div.onclick = () => castSpell(key); // Click to cast
+      
+      div.innerHTML = `
+        <div class="card-icon">${icon}</div>
+        <h3>${spell.name || key}</h3>
+        <div class="dice-tag">${spell.dice || '1d20'}</div>
+        <div style="font-size:12px; color:#666; margin-top:5px">${spell.desc || ''}</div>
+      `;
+      container.appendChild(div);
     });
+  }
 
-    const qspell = getQueryParam('spell');
-    if(qspell && spells[qspell]){
-      setTimeout(()=>playSpell(qspell, spells[qspell]), 300);
+  // Dice Logic
+  function rollDiceExpr(expr){
+    try {
+      expr = expr.replace(/\s+/g,'');
+      // Simple parser for XdY+Z
+      const m = expr.match(/^(\d+)[dD](\d+)([+-]\d+)?$/);
+      if(!m) return {error: true};
+      
+      const count = parseInt(m[1]);
+      const sides = parseInt(m[2]);
+      const mod = m[3] ? parseInt(m[3]) : 0;
+      
+      const rolls = [];
+      let total = 0;
+      for(let i=0; i<count; i++){
+        const val = Math.floor(Math.random()*sides) + 1;
+        rolls.push(val);
+        total += val;
+      }
+      total += mod;
+      
+      return { rolls, total, mod, sides, count };
+    } catch(e) {
+      return { error: true };
+    }
+  }
+
+  // Main Action: Cast Spell
+  function castSpell(key, isAuto = false) {
+    const spell = spellsData[key];
+    if(!spell) return;
+
+    // 1. Show Overlay
+    const overlay = document.getElementById('resultOverlay');
+    const titleEl = document.getElementById('resTitle');
+    const totalEl = document.getElementById('resTotal');
+    const detailsEl = document.getElementById('resDetails');
+    const descEl = document.getElementById('resDesc');
+
+    titleEl.textContent = spell.name;
+    descEl.textContent = spell.desc;
+    detailsEl.textContent = "Rolling...";
+    totalEl.textContent = "";
+    overlay.classList.add('show');
+
+    // 2. Play Audio
+    if(spell.audio) {
+      const audio = new Audio(spell.audio);
+      audio.play().catch(e => console.log("Auto-play prevented:", e));
     }
 
-    // Web NFC support check
-    const nfcStatus = document.getElementById('nfcStatus');
+    // 3. Roll Dice with Animation
+    const result = rollDiceExpr(spell.dice || '1d20');
+    
+    if(result.error) {
+        totalEl.textContent = "?";
+        detailsEl.textContent = "Dice Error";
+        return;
+    }
+
+    // Number scrambling animation
+    let frame = 0;
+    const maxFrames = 20;
+    const animInterval = setInterval(() => {
+      frame++;
+      totalEl.textContent = Math.floor(Math.random() * (result.count * result.sides)) + 1;
+      if(frame >= maxFrames) {
+        clearInterval(animInterval);
+        totalEl.textContent = result.total;
+        const modStr = result.mod ? (result.mod > 0 ? `+${result.mod}` : result.mod) : '';
+        detailsEl.textContent = `[${result.rolls.join(', ')}] ${modStr}`;
+        
+        // Pulse effect
+        totalEl.style.animation = 'pulse 0.2s ease';
+        setTimeout(() => totalEl.style.animation = '', 200);
+      }
+    }, 30);
+  }
+
+  function closeOverlay() {
+    document.getElementById('resultOverlay').classList.remove('show');
+    // clear query param to prevent reload re-cast
+    const url = new URL(window.location);
+    url.searchParams.delete('spell');
+    window.history.replaceState({}, '', url);
+  }
+
+  function toggleAdmin() {
+    const p = document.getElementById('adminPanel');
+    p.classList.toggle('visible');
+  }
+
+  // Manual Roll Handler
+  document.getElementById('rollBtn').addEventListener('click', () => {
+    const val = document.getElementById('manualDice').value || '1d20';
+    // Mock a spell object for manual roll
+    spellsData['manual'] = { name: "Manual Roll", desc: "Custom Check", dice: val, audio: null };
+    castSpell('manual');
+  });
+
+  // Init Logic
+  async function init() {
+    await loadSpells();
+
+    // Check URL Params (NFC Trigger)
+    const params = new URLSearchParams(window.location.search);
+    const spellKey = params.get('spell');
+    if(spellKey && spellsData[spellKey]) {
+      // Wait a tiny bit for UI to settle
+      setTimeout(() => castSpell(spellKey, true), 500);
+    }
+
+    // Web NFC Setup
+    const nfcStatusText = document.getElementById('nfcStatusText');
     const scanBtn = document.getElementById('scanNfcBtn');
-    if('NDEFReader' in window){
-      nfcStatus.textContent = '本浏览器支持 Web NFC（Chrome Android）。你可以在页面内扫描 NFC 标签（仅限支持的设备/浏览器）。';
+    const hud = document.getElementById('nfcHud');
+
+    if ('NDEFReader' in window) {
+      nfcStatusText.textContent = "浏览器支持 Web NFC。点击下方按钮开始扫描。";
       scanBtn.style.display = 'inline-block';
-      scanBtn.addEventListener('click', async ()=>{
-        try{
+      
+      scanBtn.addEventListener('click', async () => {
+        try {
           const ndef = new NDEFReader();
           await ndef.scan();
-          nfcStatus.textContent = '已开始监听 NFC，请把标签靠近设备…';
+          nfcStatusText.textContent = "正在监听魔法波动... (请贴近标签)";
+          hud.classList.add('active');
+          scanBtn.style.display = 'none';
+          
           ndef.onreading = event => {
             const decoder = new TextDecoder();
             let url = null;
-            for(const rec of event.message.records){
-              try{
-                if(rec.recordType === 'url'){
-                  url = decoder.decode(rec.data);
-                } else if(rec.recordType === 'text'){
-                  url = decoder.decode(rec.data);
-                } else {
-                  // try decode as text
-                  url = decoder.decode(rec.data);
-                }
-              }catch(e){ console.warn(e) }
+            for (const record of event.message.records) {
+              // Simple logic to find URL
+              if(record.recordType === "url") {
+                url = decoder.decode(record.data);
+              } else {
+                // Fallback text decode
+                url = decoder.decode(record.data);
+              }
             }
-            if(url){
-              nfcStatus.textContent = '读取到 URL： ' + url;
-              // navigate to url so site open (may be same page)
-              window.location.href = url;
-            }else{
-              nfcStatus.textContent = '读取到 NFC，但未解析出 URL';
+
+            if (url) {
+               // If URL belongs to this app, parse it without reload
+               if(url.startsWith(location.origin + location.pathname)) {
+                 try {
+                   const u = new URL(url);
+                   const s = u.searchParams.get('spell');
+                   if(s && spellsData[s]) {
+                     castSpell(s);
+                     nfcStatusText.textContent = `检测到法术: ${s}`;
+                     return;
+                   }
+                 } catch(e) {}
+               }
+               // Fallback: just navigate
+               window.location.href = url;
             }
           };
-        }catch(err){
-          nfcStatus.textContent = '启动 NFC 扫描失败：' + err;
+        } catch (error) {
+          nfcStatusText.textContent = "NFC 启动失败: " + error;
         }
       });
     } else {
-      nfcStatus.innerHTML = '当前浏览器不支持 Web NFC。<br>请使用带 NFC 的手机系统读取标签（写入 URL 到标签），或使用 Chrome Android 支持 Web NFC。';
+      nfcStatusText.innerHTML = "当前浏览器不支持直接 NFC 扫描。<br>请使用手机系统原生读取，或在 Chrome Android 中使用。";
     }
   }
-
-  document.getElementById('rollBtn').addEventListener('click', ()=>{
-    const expr = document.getElementById('manualDice').value.trim();
-    const out = rollDiceExpr(expr || '8d6');
-    document.getElementById('manualResult').innerHTML = out.error ? out.error : `结果: <strong>${out.sum}</strong><br>明细: [${out.rolls.join(', ')}]`;
-  });
 
   init();
   </script>

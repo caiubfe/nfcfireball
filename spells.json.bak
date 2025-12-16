@@ -1,0 +1,20 @@
+{
+  "fireball": {
+    "name": "Fireball",
+    "desc": "火球术!",
+    "audio": "audio/fireball.mp3",
+    "dice": "8d6"
+  },
+  "EldritchBlast": {
+    "name": "EldritchBlast",
+    "desc": "魔能爆！",
+    "audio": "audio/moneng.mp3",
+    "dice": "1d10"
+  },
+  "ignis": {
+    "name": "ignis",
+    "desc": "伊格尼斯！",
+    "audio": "audio/ignis.mp3",
+    "dice": "1d10"
+  }
+}

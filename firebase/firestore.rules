@@ -1,0 +1,10 @@
+// Firestore rules (example - allow authenticated users to write)
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /spells/{spellId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}

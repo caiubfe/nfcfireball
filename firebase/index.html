@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Spell NFC — Firebase Demo</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <h1>Firebase Upload Demo (Spell NFC)</h1>
+  <input id="name" placeholder="法术名"><br>
+  <input id="dice" placeholder="例如 8d6"><br>
+  <input type="file" id="audiofile"><br>
+  <button id="upload">Upload Spell</button>
+  <div id="status"></div>
+
+<script>
+  // TODO: 替换下面配置为你自己的 Firebase 项目配置
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "SENDER_ID",
+    appId: "APP_ID"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const storage = firebase.storage();
+  const db = firebase.firestore();
+
+  document.getElementById('upload').addEventListener('click', async ()=>{
+    const name = document.getElementById('name').value.trim();
+    const dice = document.getElementById('dice').value.trim() || '8d6';
+    const file = document.getElementById('audiofile').files[0];
+    if(!name || !file) { alert('请填写 name 并选择音频文件'); return; }
+    const id = name.replace(/\s+/g,'-').toLowerCase();
+    const ref = storage.ref().child('audio/'+id+'-'+file.name);
+    const up = ref.put(file);
+    up.on('state_changed', s => {
+      document.getElementById('status').textContent = '上传中...';
+    });
+    up.then(async snap => {
+      const url = await ref.getDownloadURL();
+      await db.collection('spells').doc(id).set({
+        name, dice, audio: url, created: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      document.getElementById('status').textContent = '上传完成： ' + id;
+    }).catch(e=>{
+      document.getElementById('status').textContent = '上传失败: ' + e;
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,28 +1,25 @@
 {
   "fireball": {
     "name": "Fireball",
-    "desc": "ÒÔÖ¸¼â±Å·¢¸ßÈÈ»ğÑæ£¬¶Ô·¶Î§ÄÚËùÓĞÉúÎïÔì³É»ÙÃğĞÔ´ò»÷£¡",
+    "desc": "ä»¥æŒ‡å°–è¿¸å‘é«˜çƒ­ç«ç„°ï¼Œå¯¹èŒƒå›´å†…æ‰€æœ‰ç”Ÿç‰©é€ æˆæ¯ç­æ€§æ‰“å‡»ï¼",
     "audio": "audio/fireball.mp3",
     "dice": "8d6"
-
   },
   "EldritchBlast": {
     "name": "Eldritch Blast",
-    "desc": "·¢Éä³öÒ»µÀàèÅ¾×÷ÏìµÄ×ÏºÚÉ«ÄÜÁ¿Êø¡£",
+    "desc": "å‘å°„å‡ºä¸€é“å™¼å•ªä½œå“çš„ç´«é»‘è‰²èƒ½é‡æŸã€‚",
     "audio": "audio/moneng.mp3",
     "dice": "1d10"
-
   },
   "ignis": {
     "name": "Ignis (Fire Bolt)",
-    "desc": "Í¶ÖÀ³öÒ»ÍÅ»ğÑæÎ¢Á£¡£",
+    "desc": "æŠ•æ·å‡ºä¸€å›¢ç«ç„°å¾®ç²’ã€‚",
     "audio": "audio/ignis.mp3",
     "dice": "1d10"
-
   },
-     "smith": {
-    "name": "smith",
-    "desc": "ÖÁÊ¥Õ¶£¡",
+  "smith": {
+    "name": "Smite",
+    "desc": "è‡³åœ£æ–©ï¼",
     "audio": "audio/smith.mp3",
     "dice": "2d8"
   }

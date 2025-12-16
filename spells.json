@@ -24,10 +24,9 @@
     "dice": "2d8"
   },
   "hex": {
-    "name": "hex",
-    "desc": "咒剑诅咒！",
+    "name": "Hexblade's Curse",
+    "desc": "目标的灵魂被暗影标记。你的攻击重击范围扩大(19-20)，并造成额外伤害。",
     "audio": "audio/hex.mp3",
-    "dice": "2d8"
+    "dice": "1d20"
   }
 }
-

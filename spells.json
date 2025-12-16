@@ -22,5 +22,12 @@
     "desc": "至圣斩！",
     "audio": "audio/smith.mp3",
     "dice": "2d8"
+  },
+  "hex": {
+    "name": "hex",
+    "desc": "咒剑诅咒！",
+    "audio": "audio/hex.mp3",
+    "dice": "2d8"
   }
 }
+

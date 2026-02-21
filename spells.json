@@ -1,32 +1,104 @@
 {
   "fireball": {
     "name": "Fireball",
-    "desc": "以指尖迸发高热火焰，对范围内所有生物造成毁灭性打击！",
+    "desc": "火球术!",
     "audio": "audio/fireball.mp3",
     "dice": "8d6"
   },
   "EldritchBlast": {
-    "name": "Eldritch Blast",
-    "desc": "发射出一道噼啪作响的紫黑色能量束。",
+    "name": "EldritchBlast",
+    "desc": "魔能爆！",
     "audio": "audio/moneng.mp3",
     "dice": "1d10"
   },
   "ignis": {
-    "name": "Ignis (Fire Bolt)",
-    "desc": "投掷出一团火焰微粒。",
+    "name": "ignis",
+    "desc": "伊格尼斯！",
     "audio": "audio/ignis.mp3",
     "dice": "1d10"
-  },
-  "smith": {
-    "name": "Smite",
+  }
+    "smith": {
+    "name": "smith",
     "desc": "至圣斩！",
     "audio": "audio/smith.mp3",
     "dice": "2d8"
+  }
+  "magic_missile": {
+    "name": "Magic Missile",
+    "desc": "魔法飞弹",
+    "audio": "audio/Magic Missile.mp3",
+    "dice": "3d4+3"
   },
-  "hex": {
-    "name": "Hexblade's Curse",
-    "desc": "目标的灵魂被暗影标记。你的攻击重击范围扩大(19-20)，并造成额外伤害。",
-    "audio": "audio/hex.mp3",
-    "dice": "1d20"
+  "find_familiar": {
+    "name": "Find Familiar",
+    "desc": "寻获魔宠",
+    "audio": "audio/Find Familiar.mp3",
+    "dice": ""
+  },
+  "counterspell": {
+    "name": "Counterspell",
+    "desc": "法术反制",
+    "audio": "audio/counterspell.mp3",
+    "dice": ""
+  },
+  "humanstand": {
+    "name": "Hold Person",
+    "desc": "人类定身术",
+    "audio": "audio/humanstand.mp3",
+    "dice": ""
+  },
+  "mizong": {
+    "name": "Misty Step",
+    "desc": "迷踪步",
+    "audio": "audio/mizong.mp3",
+    "dice": ""
+  },
+  "acclarate": {
+    "name": "Haste",
+    "desc": "加速术",
+    "audio": "audio/acclarate.mp3",
+    "dice": ""
+  },
+  "magichand": {
+    "name": "Mage Hand",
+    "desc": "法师之手",
+    "audio": "audio/magichand.mp3",
+    "dice": ""
+  },
+  "eyan": {
+    "name": "Vicious Mockery",
+    "desc": "恶言相向",
+    "audio": "audio/eyan.mp3",
+    "dice": "1d4"
+  },
+  "zhenyan": {
+    "name": "Healing Word",
+    "desc": "治愈真言",
+    "audio": "audio/zhenyan.mp3",
+    "dice": "1d4"
+  },
+  "shendao": {
+    "name": "Guidance",
+    "desc": "神导术",
+    "audio": "audio/shendao.mp3",
+    "dice": "1d4"
+  },
+  "command": {
+    "name": "Command",
+    "desc": "命令术",
+    "audio": "audio/command.mp3",
+    "dice": ""
+  },
+  "invisible": {
+    "name": "Invisibility",
+    "desc": "隐形术",
+    "audio": "audio/invisible.mp3",
+    "dice": ""
+  },
+  "buxie": {
+    "name": "Buxie",
+    "desc": "不邪/捕蟹",
+    "audio": "audio/buxie.mp3",
+    "dice": "3d6"
   }
 }

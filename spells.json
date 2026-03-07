@@ -16,13 +16,13 @@
     "desc": "伊格尼斯！",
     "audio": "audio/ignis.mp3",
     "dice": "1d10"
-  }
+  },
     "smith": {
     "name": "smith",
     "desc": "至圣斩！",
     "audio": "audio/smith.mp3",
     "dice": "2d8"
-  }
+  },
   "magic_missile": {
     "name": "Magic Missile",
     "desc": "魔法飞弹",

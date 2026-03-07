@@ -17,7 +17,7 @@
     "audio": "audio/ignis.mp3",
     "dice": "1d10"
   },
-    "smith": {
+  "smith": {
     "name": "smith",
     "desc": "至圣斩！",
     "audio": "audio/smith.mp3",

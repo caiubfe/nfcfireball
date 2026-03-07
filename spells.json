@@ -1,4 +1,10 @@
 {
+  "hex": {
+    "name": "hex",
+    "desc": "hex",
+    "audio": "audio/hex.mp3",
+    "dice": "1d6"
+  },
   "fireball": {
     "name": "Fireball",
     "desc": "火球术!",
